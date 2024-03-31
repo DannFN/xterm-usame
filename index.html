@@ -1,63 +1,114 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <link rel="stylesheet" href="node_modules/xterm/css/xterm.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-    <script src="node_modules/xterm/lib/xterm.js"></script>
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/xterm/3.14.5/xterm.min.js"></script>
-    <script src="Javascript/xterm.js"></script>
-    <title>Terminal de usame</title>
-  </head>
-  <body>
-    <!-- TODO: Botones de estado -->
-    <div id="terminal"></div>
-    <script>
-      var term = new Terminal({
-        cursorBlink: "block"
-      });
 
-      var curr_line = "";
+<head>
 
-      term.open(document.getElementById("terminal"));
-      term.write("web shell $ ");
+  <link rel="stylesheet" href="node_modules/xterm/css/xterm.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" />
 
-      term.prompt = () => {
-        if (curr_line) {
-          let data = { method: "command", command: curr_line };
-          ws.send(JSON.stringify(data));
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+
+  <script src="node_modules/xterm/lib/xterm.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xterm/3.14.5/xterm.min.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+  <title>Terminal de usame</title>
+</head>
+
+<body>
+  <div style="width: 100vw;
+              height: 100vh;
+              background-color: black;">
+    <div>
+      <div style="background-color: white;
+                  display: flex;
+                  align-items: center;">
+        <button class="waves-effect 
+                      btn-flat 
+                      btn-lkeye
+                      btn-lkeye" style="display: flex;
+                      align-items: center;
+                      justify-content: center;" id="play">
+          <i class="material-symbols-outlined blue-text" id="play_icon">play_arrow</i>
+        </button>
+
+        <button class="waves-effect 
+                      waves-blue 
+                      btn-flat 
+                      btn-lkeye
+                      btn-lkeye" style="
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;" id="refresh">
+          <i class="material-symbols-outlined grey-text text-darken-3">refresh</i>
+        </button>
+      </div>
+
+      <div style="display: flex;
+                flex-direction: column;
+                background-color: tomato;" id="terminal"></div>
+    </div>
+  </div>
+  <script>
+    const url_play = "";
+    const url_pause = "";
+    const url_restart = "";
+    const url_get = "";
+    var curr_line = "";
+    var entries = [];
+    let isPaused = false;
+
+    const playButton = document.getElementById("play");
+    const playIcon = document.getElementById("play_icon");
+    const refreshButton = document.getElementById("refresh");
+
+    const term = new window.Terminal({
+      cols: Math.floor(window.innerWidth / 9),
+      rows: 59,
+    });
+
+    term.options = {
+      fontFamily: "monospace",
+      fontSize: 22,
+      letterSpacing: 2,
+      lineHeight: 1.5,
+    };
+
+    term.open(document.getElementById("terminal"));
+
+    playButton.addEventListener("click", () => {
+      if (isPaused) {
+        playIcon.textContent = "play_arrow";
+        playIcon.classList.remove("teal-text");
+        playIcon.classList.add("blue-text");
+        isPaused = false;
+        // TODO: enviar comando de iniciar 
+      } else {
+        playIcon.textContent = "pause";
+        playIcon.classList.remove("blue-text");
+        playIcon.classList.add("teal-text");
+        isPaused = true;
+        // TODO: enviar comando de pausa
+      }
+    });
+
+    refreshButton.addEventListener("click", () => {
+      term.clear();
+      // TODO: enviar comando de reinicio
+    });
+
+    term.attachCustomKeyEventHandler((key) => {
+      if (key.ctrlKey && key.code === "KeyC" && key.type === "keydown") {
+        const selection = term.getSelection();
+        if (selection) {
+          copyText(selection);
+          return false;
         }
-      };
+      }
+      return true;
+    });
+  </script>
+</body>
 
-      term.prompt();
-
-      /* 
-        Al recibir mensajes del servidor
-        term.write("\r\n" + JSON.parse(msg.data).data);
-        curr_line = "";
-      */
-
-      term.on("key", function(key, ev) {
-        if (ev.keyCode === 13) {
-          if (curr_line) {
-            term.write("\r\n");
-            term.prompt();
-          }
-        } else if (ev.keyCode === 8) {
-          if (curr_line) {
-            curr_line = curr_line.slice(0, curr_line.length - 1);
-            term.write("\b \b");
-          }
-        } else {
-          curr_line += key;
-          term.write(key);
-        }
-      });
-
-      term.on("paste", function(data) {
-        curr_line += data;
-        term.write(data);
-      });
-    </script>
-  </body>
 </html>
